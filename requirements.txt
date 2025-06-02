@@ -1,0 +1,12 @@
+langchain-gigachat==0.3.10
+langchain_core==0.3.60
+langgraph==0.4.7 
+gigachain==0.2.6
+gigachain_community==0.2.6
+gigachain-cli==0.0.25
+python-dotenv==1.1.0
+faiss-cpu 
+torch==2.5.0
+transformers
+sentence-transformers
+pydantic==2.11.4 
