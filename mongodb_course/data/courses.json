@@ -1,0 +1,57 @@
+[
+  {
+    "_id": "CSC101",
+    "name": "Introduction to Computer Science",
+    "credits": 3,
+    "department": "Computer Science",
+    "instructor_id": "T001",
+    "schedule": {
+      "days": ["Monday", "Wednesday"],
+      "time": "10:00-11:30"
+    }
+  },
+  {
+    "_id": "MAT201",
+    "name": "Calculus II",
+    "credits": 4,
+    "department": "Mathematics",
+    "instructor_id": "T002",
+    "schedule": {
+      "days": ["Tuesday", "Thursday"],
+      "time": "14:00-15:30"
+    }
+  },
+  {
+    "_id": "PHY101",
+    "name": "General Physics I",
+    "credits": 3,
+    "department": "Physics",
+    "instructor_id": "T003",
+    "schedule": {
+      "days": ["Monday", "Wednesday", "Friday"],
+      "time": "09:00-10:00"
+    }
+  },
+  {
+    "_id": "BIO301",
+    "name": "Molecular Biology",
+    "credits": 4,
+    "department": "Biology",
+    "instructor_id": "T004",
+    "schedule": {
+      "days": ["Tuesday", "Thursday"],
+      "time": "11:00-12:30"
+    }
+  },
+  {
+    "_id": "ENG101",
+    "name": "English Composition",
+    "credits": 3,
+    "department": "English",
+    "instructor_id": "T005",
+    "schedule": {
+      "days": ["Monday", "Wednesday"],
+      "time": "13:00-14:30"
+    }
+  }
+]

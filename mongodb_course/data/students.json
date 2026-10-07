@@ -1,0 +1,57 @@
+[
+  {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "Alice Johnson",
+    "age": 20,
+    "major": "Computer Science",
+    "address": {
+      "street": "123 Main St",
+      "city": "Seattle",
+      "zip": "98101"
+    }
+  },
+  {
+    "_id": "507f1f77bcf86cd799439012",
+    "name": "Bob Smith",
+    "age": 22,
+    "major": "Mathematics",
+    "address": {
+      "street": "456 Oak Ave",
+      "city": "Boston",
+      "zip": "02101"
+    }
+  },
+  {
+    "_id": "507f1f77bcf86cd799439013",
+    "name": "Carol Williams",
+    "age": 21,
+    "major": "Physics",
+    "address": {
+      "street": "789 Pine Rd",
+      "city": "Austin",
+      "zip": "78701"
+    }
+  },
+  {
+    "_id": "507f1f77bcf86cd799439014",
+    "name": "David Brown",
+    "age": 23,
+    "major": "Computer Science",
+    "address": {
+      "street": "321 Elm St",
+      "city": "New York",
+      "zip": "10001"
+    }
+  },
+  {
+    "_id": "507f1f77bcf86cd799439015",
+    "name": "Eva Davis",
+    "age": 20,
+    "major": "Biology",
+    "address": {
+      "street": "654 Maple Dr",
+      "city": "Chicago",
+      "zip": "60601"
+    }
+  }
+]

@@ -1,0 +1,52 @@
+[
+  {
+    "student_id": "507f1f77bcf86cd799439011",
+    "course_id": "CSC101",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439011",
+    "course_id": "MAT201",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439012",
+    "course_id": "MAT201",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439012",
+    "course_id": "PHY101",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439013",
+    "course_id": "PHY101",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439013",
+    "course_id": "BIO301",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439014",
+    "course_id": "BIO301",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439014",
+    "course_id": "ENG101",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439015",
+    "course_id": "ENG101",
+    "enrollment_date": "2023-09-01"
+  },
+  {
+    "student_id": "507f1f77bcf86cd799439015",
+    "course_id": "CSC101",
+    "enrollment_date": "2023-09-01"
+  }
+]

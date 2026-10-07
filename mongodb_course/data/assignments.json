@@ -1,0 +1,26 @@
+[
+  {
+    "_id": "A001",
+    "course_id": "CSC101",
+    "title": "Introduction to Python",
+    "description": "Basic Python programming assignment",
+    "due_date": "2023-10-15",
+    "max_points": 100
+  },
+  {
+    "_id": "A002",
+    "course_id": "MAT201",
+    "title": "Integration Techniques",
+    "description": "Practice integration problems",
+    "due_date": "2023-10-20",
+    "max_points": 100
+  },
+  {
+    "_id": "A003",
+    "course_id": "PHY101",
+    "title": "Kinematics Problems",
+    "description": "Solve motion problems",
+    "due_date": "2023-10-18",
+    "max_points": 100
+  }
+]

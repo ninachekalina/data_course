@@ -2,15 +2,15 @@ import streamlit as st
 import datetime
 import json
 from pages.backend import rag_functions
-#from pages.backend.rag_functions import prepare_rag_llm, load_csv_as_context, generate_cql_query, generate_answer, \
-    #generate_sql_query, generate_quiz_from_retriever
 from pages.backend.rag_functions import prepare_rag_llm, load_csv_as_context, generate_cql_query, generate_answer, \
     generate_sql_query, generate_quiz_from_retriever
+from pages.backend.mongodb_operations import MongoDBHandler
 
 st.title("🎓 AI Ассистент + Генератор запросов")
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+if "db_handler" not in st.session_state:
+    st.session_state.db_handler = MongoDBHandler()
+    st.session_state.chat_history = st.session_state.db_handler.get_chat_history()
 st.sidebar.subheader("⚙️ Настройки модели")
 temperature = st.sidebar.slider("Температура генерации (креативность)", min_value=0.0, max_value=1.5, value=0.7, step=0.1)
 
@@ -29,7 +29,15 @@ st.subheader("💬 Задай вопрос по базе знаний")
 user_input = st.text_input("Вопрос")
 if st.button("Ответить") and user_input:
     with st.spinner("Генерация ответа..."):
+        # Insert user message into MongoDB
+        st.session_state.db_handler.insert_chat_message("user", user_input)
+        # Generate answer
         answer, _ = generate_answer(user_input)
+        # Insert assistant message into MongoDB
+        st.session_state.db_handler.insert_chat_message("assistant", answer)
+        # Update chat history from MongoDB
+        st.session_state.chat_history = st.session_state.db_handler.get_chat_history()
+        # Display the answer immediately
         st.write(answer)
         st.markdown("---")
         st.subheader("🕘 История диалога")
@@ -40,6 +48,7 @@ if st.button("Ответить") and user_input:
             else:
                 st.markdown(f"**Ассистент:** {msg['message']}")
 if st.button("🧹 Очистить историю"):
+    st.session_state.db_handler.clear_chat_history()
     st.session_state.chat_history = []
 
 st.subheader("💾 Сохранение истории")

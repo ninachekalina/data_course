@@ -1,0 +1,42 @@
+[
+  {
+    "_id": "T001",
+    "name": "Dr. John Smith",
+    "department": "Computer Science",
+    "title": "Associate Professor",
+    "email": "john.smith@university.edu",
+    "office": "CS Building, Room 301"
+  },
+  {
+    "_id": "T002",
+    "name": "Dr. Maria Garcia",
+    "department": "Mathematics",
+    "title": "Professor",
+    "email": "maria.garcia@university.edu",
+    "office": "Math Building, Room 205"
+  },
+  {
+    "_id": "T003",
+    "name": "Dr. Robert Chen",
+    "department": "Physics",
+    "title": "Assistant Professor",
+    "email": "robert.chen@university.edu",
+    "office": "Physics Building, Room 108"
+  },
+  {
+    "_id": "T004",
+    "name": "Dr. Lisa Wang",
+    "department": "Biology",
+    "title": "Associate Professor",
+    "email": "lisa.wang@university.edu",
+    "office": "Bio Building, Room 402"
+  },
+  {
+    "_id": "T005",
+    "name": "Dr. James Wilson",
+    "department": "English",
+    "title": "Professor",
+    "email": "james.wilson@university.edu",
+    "office": "Liberal Arts, Room 150"
+  }
+]

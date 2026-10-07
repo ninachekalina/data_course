@@ -1,0 +1,19 @@
+{
+  "name": "mongodb-course",
+  "version": "1.0.0",
+  "description": "MongoDB Educational Course",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./tests/runTests.js"
+  },
+  "keywords": [
+    "mongodb",
+    "education",
+    "course"
+  ],
+  "author": "Educational Course",
+  "license": "MIT",
+  "dependencies": {
+    "mongodb": "^6.5.0"
+  }
+}

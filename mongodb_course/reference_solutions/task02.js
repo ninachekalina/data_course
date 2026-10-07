@@ -1,0 +1,1 @@
+db.students.find({ age: { $gt: 21 } })
