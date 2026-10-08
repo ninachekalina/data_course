@@ -14,6 +14,9 @@ async function runTests() {
         await client.connect();
         const db = client.db('mongodb_course');
 
+        // Determine solutions directory from environment variable, default to 'solutions'
+        const solutionsDir = process.env.TEST_SOLUTIONS_DIR || path.join(__dirname, '..', 'solutions');
+
         // Find all test files
         const testDir = path.join(__dirname);
         const files = fs.readdirSync(testDir);
@@ -60,12 +63,14 @@ async function runTests() {
                 await db.collection('students').createIndex({ "major": 1 });
 
                 // Read the student's solution
-                const solutionPath = path.join(__dirname, '..', 'solutions', `task${taskNum}.js`);
+                const solutionPath = path.join(solutionsDir, `task${taskNum}.js`);
                 let studentCode;
                 try {
                     studentCode = fs.readFileSync(solutionPath, 'utf8');
                 } catch (e) {
-                    throw new Error(`Could not read solution file at ${solutionPath}: ${e.message}`);
+                    console.log(`  NOT SUBMITTED - Solution file not found: ${solutionPath}`);
+                    // Skip to next test
+                    continue;
                 }
 
                 // Prepare db object with collections attached for the student's code
@@ -83,8 +88,13 @@ async function runTests() {
                     // Use vm to run the code in a context
                     const vm = require('vm');
                     const context = { db: dbWithCollections };
+                    vm.createContext(context); // Make sure the context is properly initialized
                     const script = new vm.Script(studentCode);
                     result = script.runInContext(context);
+                    // If the result is a Promise, await it
+                    if (result && typeof result.then === 'function') {
+                        result = await result;
+                    }
                 } catch (e) {
                     throw new Error(`Error executing student's solution: ${e.message}`);
                 }
