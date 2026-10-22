@@ -1,0 +1,69 @@
+﻿name: MongoDB Practice Submission Check
+
+run-name: MongoDB submission ${{ github.event.client_payload.submission_id }}
+
+on:
+  repository_dispatch:
+    types: [mongodb_assignment_check]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    services:
+      mongodb:
+        image: mongo:4.4
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongo --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: mongodb_course/package-lock.json
+
+      - name: Install dependencies
+        working-directory: mongodb_course
+        run: npm ci
+
+      - name: Prepare submitted solution
+        env:
+          TASK_NUMBER: ${{ github.event.client_payload.task_number }}
+          SOLUTION_B64: ${{ github.event.client_payload.solution_b64 }}
+        run: |
+          set -euo pipefail
+
+          case "$TASK_NUMBER" in
+            01|02|03|04|06|07) ;;
+            *) echo "Invalid task number"; exit 1 ;;
+          esac
+
+          mkdir -p "$RUNNER_TEMP/student-solutions"
+          cp mongodb_course/reference_solutions/task*.js "$RUNNER_TEMP/student-solutions/"
+
+          printf '%s' "$SOLUTION_B64" |
+            base64 --decode > "$RUNNER_TEMP/student-solutions/task${TASK_NUMBER}.js"
+
+          test -s "$RUNNER_TEMP/student-solutions/task${TASK_NUMBER}.js"
+
+      - name: Run MongoDB tests
+        working-directory: mongodb_course
+        env:
+          TEST_SOLUTIONS_DIR: ${{ runner.temp }}/student-solutions
+        run: npm test
