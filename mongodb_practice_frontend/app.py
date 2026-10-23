@@ -35,10 +35,7 @@ if "submission_id" not in st.session_state:
 # --- Шапка ---
 st.title(APP_TITLE)
 st.caption(APP_SUBTITLE)
-st.info(
-    "Локальный режим MVP: автоматическая проверка через GitHub Actions пока не "
-    "подключена. Реальный результат PASS / FAIL не генерируется локально."
-)
+
 
 # --- Выбор задания ---
 task_numbers = [task["number"] for task in TASKS]
@@ -120,26 +117,50 @@ if check_clicked:
 
 # --- Статус и результат ---
 st.divider()
-st.subheader("Текущее состояние")
-show_status(st.session_state.status, st.session_state.result_message)
+
+
 
 if st.session_state.submission_id:
     st.caption(f"Идентификатор текущей отправки: {st.session_state.submission_id}")
 
 # --- Явный индикатор рынка проверки; запрещаем локальный PASS ---
-if st.session_state.status == STATUS_PASS and not st.session_state.get("real_check_confirmed", False):
-    st.session_state.status = STATUS_NOT_CONNECTED
-    st.session_state.result_message = (
-        "Локальное PASS невозможно: автоматическая проверка не подключена. "
-        "Отправленное решение получит реальный результат только после настройки "
-        "GitHub Actions."
-    )
-    st.rerun()
+#if st.session_state.status == STATUS_PASS and not st.session_state.get("real_check_confirmed", False):
+    #st.session_state.status = STATUS_NOT_CONNECTED
+    #st.session_state.result_message = (
+        #"Локальное PASS невозможно: автоматическая проверка не подключена. "
+        #"Отправленное решение получит реальный результат только после настройки "
+        #"GitHub Actions."
+    #)
+   # st.rerun()
 
-# --- Отложенное получение результата подключенной проверки ---
-if st.session_state.submission_id and st.session_state.status == STATUS_CHECKING:
-    polled = poll_check(st.session_state.submission_id)
-    if polled.status != CheckStatus.NOT_CONNECTED:
+
+# --- Автоматическое обновление результата SaaS-проверки ---
+@st.fragment(run_every="3s")
+def render_check_status():
+    submission_id = st.session_state.submission_id
+    current_status = st.session_state.status
+
+    if submission_id and current_status == STATUS_CHECKING:
+        polled = poll_check(submission_id)
+
+        # Сохраняем актуальный статус, в том числе ошибки подключения.
         st.session_state.status = polled.status.value
         st.session_state.result_message = polled.message
-        st.session_state.submission_id = polled.submission_id or st.session_state.submission_id
+        st.session_state.submission_id = (
+            polled.submission_id or submission_id
+        )
+
+    st.subheader("Текущее состояние")
+    show_status(
+        st.session_state.status,
+        st.session_state.result_message,
+    )
+
+    if st.session_state.submission_id:
+        st.caption(
+            f"Идентификатор текущей отправки: "
+            f"{st.session_state.submission_id}"
+        )
+
+
+render_check_status()

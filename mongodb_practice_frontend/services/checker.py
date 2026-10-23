@@ -1,4 +1,4 @@
-﻿"""GitHub Actions integration for MongoDB practice."""
+﻿"""Интеграция с SaaS-проверкой заданий MongoDB."""
 
 import base64
 import os
@@ -23,6 +23,8 @@ from config import (
 
 API = "https://api.github.com"
 REPOSITORY = os.getenv("GITHUB_REPOSITORY", "ninachekalina/data_course")
+EVENT_TYPE = "mongodb_assignment_check"
+ALLOWED_TASKS = {"01", "02", "03", "04", "06", "07"}
 
 
 class CheckStatus(Enum):
@@ -48,13 +50,16 @@ class CheckResult:
 
 
 def _token() -> str | None:
+    """Получить токен из переменных окружения или Secrets Streamlit."""
     token = os.getenv("GITHUB_TOKEN")
     if token:
         return token
 
     try:
         import streamlit as st
-        return st.secrets.get("GITHUB_TOKEN")
+
+        token = st.secrets.get("GITHUB_TOKEN")
+        return str(token) if token else None
     except Exception:
         return None
 
@@ -68,6 +73,7 @@ def _headers(token: str) -> dict:
 
 
 def generate_submission_id(task_number: str) -> str:
+    """Создать уникальный идентификатор отправки."""
     return f"task{task_number}-{uuid.uuid4().hex}"
 
 
@@ -76,19 +82,22 @@ def validate_solution(
     solution: str | None,
     max_length: int,
 ) -> str | None:
+    """Проверить решение до отправки в SaaS."""
     if not task_number:
         return "Сначала выберите задание."
+
     if solution is None or not solution.strip():
-        return "ешение не должно быть пустым."
+        return "Решение не должно быть пустым."
+
     if len(solution) > max_length:
-        return f"ешение превышает лимит в {max_length} символов."
+        return f"Решение превышает лимит в {max_length} символов."
 
     try:
         number = int(task_number)
     except (TypeError, ValueError):
-        return "екорректный номер задания."
+        return "Некорректный номер задания."
 
-    if number not in {1, 2, 3, 4, 6, 7}:
+    if f"{number:02d}" not in ALLOWED_TASKS:
         return "Такого задания нет."
 
     return None
@@ -100,26 +109,32 @@ def submit_solution(
     student_id: str = "local",
     max_length: int = 4000,
 ) -> CheckResult:
+    """Отправить решение на автоматическую проверку."""
     error = validate_solution(task_number, solution, max_length)
     if error:
-        return CheckResult(CheckStatus.SUBMIT_ERROR, message=error)
+        return CheckResult(
+            CheckStatus.SUBMIT_ERROR,
+            message=error,
+        )
 
     token = _token()
     if not token:
         return CheckResult(
             CheckStatus.NOT_CONNECTED,
             message=(
-                "е настроен GITHUB_TOKEN. обавьте токен в Secrets "
-                "приложения Streamlit."
+                "Не настроено подключение к SaaS-проверке. "
+                "Проверьте настройку GITHUB_TOKEN в Secrets приложения."
             ),
         )
 
     number = f"{int(task_number):02d}"
     submission_id = generate_submission_id(number)
-    solution_b64 = base64.b64encode(solution.encode("utf-8")).decode("ascii")
+    solution_b64 = base64.b64encode(
+        solution.encode("utf-8")
+    ).decode("ascii")
 
     payload = {
-        "event_type": "mongodb_assignment_check",
+        "event_type": EVENT_TYPE,
         "client_payload": {
             "submission_id": submission_id,
             "task_number": number,
@@ -138,37 +153,45 @@ def submit_solution(
         )
 
         if response.status_code != 204:
-            detail = response.text[:500]
             return CheckResult(
                 CheckStatus.SUBMIT_ERROR,
                 submission_id=submission_id,
                 message=(
-                    f"GitHub не принял отправку "
-                    f"(HTTP {response.status_code}). {detail}"
+                    "Не удалось отправить решение в SaaS-проверку "
+                    f"(HTTP {response.status_code}). "
+                    f"{response.text[:300]}"
                 ),
             )
 
         return CheckResult(
             CheckStatus.CHECKING,
             submission_id=submission_id,
-            message="ешение отправлено. жидаем завершения тестов GitHub Actions.",
+            message=(
+                "Решение отправлено. Ожидаем результат "
+                "автоматической проверки."
+            ),
         )
 
     except requests.RequestException as exc:
         return CheckResult(
             CheckStatus.SUBMIT_ERROR,
             submission_id=submission_id,
-            message=f"е удалось связаться с GitHub: {exc}",
+            message=f"Не удалось отправить решение: {exc}",
         )
 
 
 def poll_check(submission_id: str) -> CheckResult:
+    """Получить статус проверки конкретной отправки."""
     token = _token()
+
     if not token:
         return CheckResult(
             CheckStatus.NOT_CONNECTED,
             submission_id=submission_id,
-            message="е настроен GITHUB_TOKEN.",
+            message=(
+                "Нет подключения к SaaS-проверке. "
+                "Проверьте настройку GITHUB_TOKEN."
+            ),
         )
 
     url = f"{API}/repos/{REPOSITORY}/actions/runs"
@@ -177,7 +200,10 @@ def poll_check(submission_id: str) -> CheckResult:
         response = requests.get(
             url,
             headers=_headers(token),
-            params={"event": "repository_dispatch", "per_page": 100},
+            params={
+                "event": "repository_dispatch",
+                "per_page": 100,
+            },
             timeout=20,
         )
 
@@ -185,13 +211,20 @@ def poll_check(submission_id: str) -> CheckResult:
             return CheckResult(
                 CheckStatus.CHECK_ERROR,
                 submission_id=submission_id,
-                message=f"GitHub вернул HTTP {response.status_code}: {response.text[:300]}",
+                message=(
+                    "Не удалось получить статус проверки "
+                    f"(HTTP {response.status_code}). "
+                    f"{response.text[:300]}"
+                ),
             )
 
         runs = response.json().get("workflow_runs", [])
+
+        # Workflow должен включать submission_id в run-name.
         matching_run = next(
             (
-                run for run in runs
+                run
+                for run in runs
                 if submission_id in str(run.get("display_title", ""))
                 or submission_id in str(run.get("name", ""))
             ),
@@ -202,18 +235,21 @@ def poll_check(submission_id: str) -> CheckResult:
             return CheckResult(
                 CheckStatus.CHECKING,
                 submission_id=submission_id,
-                message="GitHub получил отправку или ставит проверку в очередь.",
+                message=(
+                    "Отправка принята. Проверка ожидает запуска "
+                    "или ещё не появилась в списке запусков."
+                ),
             )
 
-        status = matching_run.get("status")
+        run_status = matching_run.get("status")
         conclusion = matching_run.get("conclusion")
         run_url = matching_run.get("html_url", "")
 
-        if status != "completed":
+        if run_status != "completed":
             return CheckResult(
                 CheckStatus.CHECKING,
                 submission_id=submission_id,
-                message=f"Тесты выполняются. {run_url}",
+                message=f"Решение проверяется. {run_url}".strip(),
                 raw=matching_run,
             )
 
@@ -221,7 +257,7 @@ def poll_check(submission_id: str) -> CheckResult:
             return CheckResult(
                 CheckStatus.PASS,
                 submission_id=submission_id,
-                message=f"се тесты пройдены. {run_url}",
+                message=f"Все тесты пройдены. {run_url}".strip(),
                 raw=matching_run,
             )
 
@@ -229,14 +265,21 @@ def poll_check(submission_id: str) -> CheckResult:
             return CheckResult(
                 CheckStatus.FAIL,
                 submission_id=submission_id,
-                message=f"ешение не прошло тесты или произошла ошибка запуска. {run_url}",
+                message=(
+                    "Проверка завершилась с ошибкой: "
+                    "решение не прошло тесты или произошла ошибка "
+                    f"при их выполнении. {run_url}"
+                ).strip(),
                 raw=matching_run,
             )
 
         return CheckResult(
             CheckStatus.CHECK_ERROR,
             submission_id=submission_id,
-            message=f"роверка завершилась со статусом {conclusion}. {run_url}",
+            message=(
+                "Не удалось подтвердить результат проверки. "
+                f"Статус завершения: {conclusion}. {run_url}"
+            ).strip(),
             raw=matching_run,
         )
 
@@ -244,5 +287,5 @@ def poll_check(submission_id: str) -> CheckResult:
         return CheckResult(
             CheckStatus.CHECK_ERROR,
             submission_id=submission_id,
-            message=f"е удалось получить результат проверки: {exc}",
+            message=f"Не удалось получить результат проверки: {exc}",
         )
