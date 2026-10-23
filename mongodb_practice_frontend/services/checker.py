@@ -123,7 +123,7 @@ def submit_solution(
             CheckStatus.NOT_CONNECTED,
             message=(
                 "Не настроено подключение к SaaS-проверке. "
-                "Проверьте настройку GITHUB_TOKEN в Secrets приложения."
+                "Проверьте настройку TOKEN в Secrets приложения."
             ),
         )
 
@@ -190,7 +190,7 @@ def poll_check(submission_id: str) -> CheckResult:
             submission_id=submission_id,
             message=(
                 "Нет подключения к SaaS-проверке. "
-                "Проверьте настройку GITHUB_TOKEN."
+                "Проверьте настройку TOKEN."
             ),
         )
 
@@ -249,7 +249,7 @@ def poll_check(submission_id: str) -> CheckResult:
             return CheckResult(
                 CheckStatus.CHECKING,
                 submission_id=submission_id,
-                message=f"Решение проверяется. {run_url}".strip(),
+                message="Решение проверяется. Пожалуйста, подождите.",
                 raw=matching_run,
             )
 
@@ -257,7 +257,7 @@ def poll_check(submission_id: str) -> CheckResult:
             return CheckResult(
                 CheckStatus.PASS,
                 submission_id=submission_id,
-                message=f"Все тесты пройдены. {run_url}".strip(),
+                message=" Тест пройден.",
                 raw=matching_run,
             )
 
@@ -268,7 +268,7 @@ def poll_check(submission_id: str) -> CheckResult:
                 message=(
                     "Проверка завершилась с ошибкой: "
                     "решение не прошло тесты или произошла ошибка "
-                    f"при их выполнении. {run_url}"
+                    "при их выполнении."
                 ).strip(),
                 raw=matching_run,
             )
@@ -278,7 +278,7 @@ def poll_check(submission_id: str) -> CheckResult:
             submission_id=submission_id,
             message=(
                 "Не удалось подтвердить результат проверки. "
-                f"Статус завершения: {conclusion}. {run_url}"
+                f"Статус завершения: {conclusion}. "
             ).strip(),
             raw=matching_run,
         )
